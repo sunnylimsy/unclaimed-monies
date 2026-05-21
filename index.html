@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Singapore Unclaimed Monies Search</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: white;
+      padding: 24px 20px;
+      text-align: center;
+    }
+
+    header h1 { font-size: 1.5rem; margin-bottom: 6px; }
+    header p { font-size: 0.9rem; opacity: 0.8; }
+
+    .search-box {
+      background: white;
+      padding: 24px 20px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .search-box .inner {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-box input {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .search-box button {
+      padding: 10px 24px;
+      background: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .search-box button:hover { background: #2d2d5e; }
+
+    .disclaimer {
+      max-width: 800px;
+      margin: 16px auto;
+      padding: 0 20px;
+      font-size: 0.8rem;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .results-area {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .status {
+      text-align: center;
+      color: #555;
+      padding: 20px;
+      font-size: 0.95rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    thead { background: #1a1a2e; color: white; }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9f9f9; }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .pagination button {
+      padding: 8px 16px;
+      border: 1px solid #ccc;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .pagination button:hover { background: #f0f0f0; }
+    .pagination button:disabled { opacity: 0.4; cursor: default; }
+    .pagination .page-info { padding: 8px 12px; font-size: 0.9rem; color: #555; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Singapore Unclaimed Monies Search</h1>
+  <p>Search across 66,067 records from 44 government agencies</p>
+</header>
+
+<div class="search-box">
+  <div class="inner">
+    <input type="text" id="searchName" placeholder="Name (e.g. TAN AH KOW)" />
+    <input type="text" id="searchAddress" placeholder="Address (e.g. Tampines)" />
+    <button onclick="runSearch()">Search</button>
+  </div>
+</div>
+
+<div class="disclaimer">
+  Data sourced directly from Singapore government agencies via
+  <a href="https://www.unclaimedmonies.gov.sg" target="_blank">www.unclaimedmonies.gov.sg</a>.
+  Some entries may have incomplete information. Please verify with the relevant agency before making a claim.
+  Last updated: May 2026.
+</div>
+
+<div class="results-area">
+  <div class="status" id="status">Enter a name or address above to search.</div>
+  <div id="tableContainer"></div>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://prmohtjkhtinnlrmdwcd.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBybW9odGpraHRpbm5scm1kd2NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNDgzNjUsImV4cCI6MjA5NDkyNDM2NX0.XS66Ucb0GZ7bQE__sEHQDKFFf16fcEXSflnJVMWpyCY";
+
+  const PAGE_SIZE = 20;
+  let currentPage = 0;
+  let totalCount = 0;
+  let lastName = "";
+  let lastAddress = "";
+
+  async function runSearch(page = 0) {
+    const name = document.getElementById("searchName").value.trim();
+    const address = document.getElementById("searchAddress").value.trim();
+
+    if (!name && !address) {
+      document.getElementById("status").textContent = "Please enter a name or address to search.";
+      document.getElementById("tableContainer").innerHTML = "";
+      document.getElementById("pagination").innerHTML = "";
+      return;
+    }
+
+    lastName = name;
+    lastAddress = address;
+    currentPage = page;
+
+    document.getElementById("status").textContent = "Searching...";
+    document.getElementById("tableContainer").innerHTML = "";
+    document.getElementById("pagination").innerHTML = "";
+
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    let url = `${SUPABASE_URL}/rest/v1/unclaimed_monies?select=monies_id,name,agency,address,category,year_collected`;
+
+    if (name) url += `&name=ilike.*${encodeURIComponent(name)}*`;
+    if (address) url += `&address=ilike.*${encodeURIComponent(address)}*`;
+
+    url += `&order=name.asc&offset=${from}&limit=${PAGE_SIZE}`;
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+          "Range-Unit": "items",
+          "Range": `${from}-${to}`,
+          "Prefer": "count=exact"
+        }
+      });
+
+      const contentRange = response.headers.get("content-range");
+      if (contentRange) {
+        const parts = contentRange.split("/");
+        totalCount = parseInt(parts[1]) || 0;
+      }
+
+      const data = await response.json();
+
+      if (!data.length) {
+        document.getElementById("status").textContent = "No results found.";
+        return;
+      }
+
+      totalPages = Math.ceil(totalCount / PAGE_SIZE);
+      document.getElementById("status").textContent =
+        `Showing ${from + 1}–${Math.min(from + data.length, totalCount)} of ${totalCount.toLocaleString()} results`;
+
+      renderTable(data);
+      renderPagination(page, totalPages);
+
+    } catch (err) {
+      document.getElementById("status").textContent = "Error fetching results. Please try again.";
+      console.error(err);
+    }
+  }
+
+  function renderTable(data) {
+    const table = document.createElement("table");
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Monies ID</th>
+          <th>Name</th>
+          <th>Agency</th>
+          <th>Address</th>
+          <th>Category</th>
+          <th>Year</th>
+        </tr>
+      </thead>
+    `;
+    const tbody = document.createElement("tbody");
+    data.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.monies_id ?? ""}</td>
+        <td>${row.name ?? ""}</td>
+        <td>${row.agency ?? ""}</td>
+        <td>${row.address ?? ""}</td>
+        <td>${row.category ?? ""}</td>
+        <td>${row.year_collected ?? ""}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    document.getElementById("tableContainer").appendChild(table);
+  }
+
+  function renderPagination(page, totalPages) {
+    const container = document.getElementById("pagination");
+    const prev = document.createElement("button");
+    prev.textContent = "← Prev";
+    prev.disabled = page === 0;
+    prev.onclick = () => runSearch(page - 1);
+
+    const info = document.createElement("span");
+    info.className = "page-info";
+    info.textContent = `Page ${page + 1} of ${totalPages}`;
+
+    const next = document.createElement("button");
+    next.textContent = "Next →";
+    next.disabled = page >= totalPages - 1;
+    next.onclick = () => runSearch(page + 1);
+
+    container.appendChild(prev);
+    container.appendChild(info);
+    container.appendChild(next);
+  }
+
+  document.getElementById("searchName").addEventListener("keydown", e => {
+    if (e.key === "Enter") runSearch();
+  });
+  document.getElementById("searchAddress").addEventListener("keydown", e => {
+    if (e.key === "Enter") runSearch();
+  });
+</script>
+
+</body>
+</html>
