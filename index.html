@@ -6,114 +6,84 @@
   <title>Singapore Unclaimed Monies Search</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; color: #222; }
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      color: #222;
-    }
-
-    header {
-      background: #1a1a2e;
-      color: white;
-      padding: 24px 20px;
-      text-align: center;
-    }
-
+    header { background: #1a1a2e; color: white; padding: 24px 20px; text-align: center; }
     header h1 { font-size: 1.5rem; margin-bottom: 6px; }
     header p { font-size: 0.9rem; opacity: 0.8; }
 
-    .search-box {
-      background: white;
-      padding: 24px 20px;
-      border-bottom: 1px solid #ddd;
+    nav { background: #16213e; display: flex; justify-content: center; gap: 0; }
+    nav button {
+      background: none; border: none; color: #aac4ff; padding: 12px 24px;
+      cursor: pointer; font-size: 0.9rem; border-bottom: 3px solid transparent;
     }
+    nav button:hover { color: white; }
+    nav button.active { color: white; border-bottom-color: #4f8ef7; }
 
-    .search-box .inner {
-      max-width: 800px;
-      margin: 0 auto;
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
+    .page { display: none; max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+    .page.active { display: block; }
 
-    .search-box input {
-      flex: 1;
-      min-width: 200px;
-      padding: 10px 14px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
+    /* SEARCH PAGE */
+    .search-box { background: white; padding: 20px; border-radius: 6px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .search-box h3 { margin-bottom: 12px; font-size: 1rem; color: #444; }
+    .search-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .search-row input { flex: 1; min-width: 180px; padding: 10px 14px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+    .search-row button { padding: 10px 24px; background: #1a1a2e; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+    .search-row button:hover { background: #2d2d5e; }
 
-    .search-box button {
-      padding: 10px 24px;
-      background: #1a1a2e;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
+    .disclaimer { font-size: 0.8rem; color: #666; line-height: 1.6; margin-bottom: 16px; }
+    .disclaimer a { color: #4f8ef7; }
 
-    .search-box button:hover { background: #2d2d5e; }
+    .status { text-align: center; color: #555; padding: 20px; font-size: 0.95rem; }
 
-    .disclaimer {
-      max-width: 800px;
-      margin: 16px auto;
-      padding: 0 20px;
-      font-size: 0.8rem;
-      color: #666;
-      line-height: 1.5;
-    }
-
-    .results-area {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    .status {
-      text-align: center;
-      color: #555;
-      padding: 20px;
-      font-size: 0.95rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      font-size: 0.9rem;
-      border-radius: 4px;
-      overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-
+    table { width: 100%; border-collapse: collapse; background: white; font-size: 0.88rem; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
     thead { background: #1a1a2e; color: white; }
-    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #eee; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: #f9f9f9; }
 
-    .pagination {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 20px;
-    }
+    .claim-btn { padding: 6px 14px; background: #2e7d32; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.82rem; white-space: nowrap; }
+    .claim-btn:hover { background: #1b5e20; }
 
-    .pagination button {
-      padding: 8px 16px;
-      border: 1px solid #ccc;
-      background: white;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-
+    .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; align-items: center; }
+    .pagination button { padding: 8px 16px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
     .pagination button:hover { background: #f0f0f0; }
     .pagination button:disabled { opacity: 0.4; cursor: default; }
-    .pagination .page-info { padding: 8px 12px; font-size: 0.9rem; color: #555; }
+    .pagination .page-info { font-size: 0.9rem; color: #555; }
+
+    /* HOW TO USE PAGE */
+    .info-card { background: white; border-radius: 6px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .info-card h2 { font-size: 1.1rem; color: #1a1a2e; margin-bottom: 16px; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; }
+    .info-card h3 { font-size: 0.95rem; color: #333; margin: 16px 0 8px; }
+    .info-card p, .info-card li { font-size: 0.9rem; color: #444; line-height: 1.7; }
+    .info-card ul, .info-card ol { padding-left: 20px; }
+    .info-card li { margin-bottom: 6px; }
+    .step-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .step-num { background: #1a1a2e; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; font-size: 0.9rem; }
+    .step-text { flex: 1; }
+    .step-text strong { display: block; margin-bottom: 4px; font-size: 0.92rem; }
+    .step-text p { font-size: 0.88rem; color: #555; }
+    .tag { display: inline-block; background: #e8f0fe; color: #1a1a2e; font-size: 0.78rem; padding: 2px 8px; border-radius: 12px; margin: 2px; }
+    .scam-warning { background: #fff3e0; border-left: 4px solid #ff9800; padding: 14px 16px; border-radius: 0 4px 4px 0; font-size: 0.88rem; color: #555; margin-bottom: 16px; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 8px; max-width: 620px; width: 100%; max-height: 90vh; overflow-y: auto; }
+    .modal-header { background: #1a1a2e; color: white; padding: 16px 20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 1rem; }
+    .modal-close { background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer; line-height: 1; }
+    .modal-body { padding: 20px; }
+    .modal-body h4 { font-size: 0.92rem; color: #1a1a2e; margin: 16px 0 8px; }
+    .modal-body p, .modal-body li { font-size: 0.88rem; color: #444; line-height: 1.6; }
+    .modal-body ul { padding-left: 18px; margin-bottom: 12px; }
+    .email-preview { background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 14px; font-size: 0.85rem; font-family: monospace; white-space: pre-wrap; margin: 10px 0; color: #333; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .btn-copy { padding: 10px 20px; background: #1a1a2e; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-copy:hover { background: #2d2d5e; }
+    .btn-mailto { padding: 10px 20px; background: #2e7d32; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; text-decoration: none; display: inline-block; }
+    .btn-mailto:hover { background: #1b5e20; }
+    .copied-msg { color: #2e7d32; font-size: 0.85rem; align-self: center; display: none; }
   </style>
 </head>
 <body>
@@ -123,25 +93,155 @@
   <p>Search across 66,067 records from 44 government agencies</p>
 </header>
 
-<div class="search-box">
-  <div class="inner">
-    <input type="text" id="searchName" placeholder="Name (e.g. TAN AH KOW)" />
-    <input type="text" id="searchAddress" placeholder="Address (e.g. Tampines)" />
-    <button onclick="runSearch()">Search</button>
+<nav>
+  <button class="active" onclick="showPage('search', this)">🔍 Search</button>
+  <button onclick="showPage('howto', this)">📋 How to Use</button>
+</nav>
+
+<!-- SEARCH PAGE -->
+<div class="page active" id="page-search">
+  <br/>
+  <div class="search-box">
+    <h3>Search by name or address</h3>
+    <div class="search-row">
+      <input type="text" id="searchName" placeholder="Name (e.g. TAN AH KOW)" />
+      <input type="text" id="searchAddress" placeholder="Address (e.g. Tampines)" />
+      <button onclick="runSearch()">Search</button>
+    </div>
   </div>
-</div>
 
-<div class="disclaimer">
-  Data sourced directly from Singapore government agencies via
-  <a href="https://www.unclaimedmonies.gov.sg" target="_blank">www.unclaimedmonies.gov.sg</a>.
-  Some entries may have incomplete information. Please verify with the relevant agency before making a claim.
-  Last updated: May 2026.
-</div>
+  <p class="disclaimer">
+    Data sourced directly from Singapore government agencies via
+    <a href="https://www.unclaimedmonies.gov.sg" target="_blank">www.unclaimedmonies.gov.sg</a>.
+    Some entries may have incomplete information. Please verify with the relevant agency before making a claim.
+    Last updated: May 2026. &nbsp;|&nbsp;
+    <strong>Scam advisory:</strong> Government officials will NEVER ask you to transfer money or disclose bank login details. Call ScamShield at <strong>1799</strong> if unsure.
+  </p>
 
-<div class="results-area">
   <div class="status" id="status">Enter a name or address above to search.</div>
   <div id="tableContainer"></div>
   <div class="pagination" id="pagination"></div>
+</div>
+
+<!-- HOW TO USE PAGE -->
+<div class="page" id="page-howto">
+  <br/>
+
+  <div class="scam-warning">
+    ⚠️ <strong>Scam Advisory:</strong> Government officials will NEVER ask you to transfer money or disclose bank login details over a phone call. If you are unsure, call the 24/7 ScamShield Helpline at <strong>1799</strong> or visit <a href="https://www.scamshield.gov.sg" target="_blank">scamshield.gov.sg</a>.
+  </div>
+
+  <div class="info-card">
+    <h2>How to Make a Claim — 3 Steps</h2>
+    <div class="step-row">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        <strong>Search for your name or address</strong>
+        <p>Enter your name (or the name of a deceased person you are claiming on behalf of) and/or your last known address. Partial searches work — e.g. searching "Tan" will return all names containing "Tan".</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        <strong>Click "Make a Claim" on the matching record</strong>
+        <p>A window will open with a pre-filled email and instructions. Copy the email content or click "Open in Email" to launch your email app with details filled in. The subject line should be: <em>"Please process my claim"</em>.</p>
+      </div>
+    </div>
+    <div class="step-row">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        <strong>Send your email with supporting documents</strong>
+        <p>Attach the relevant documents (see below) and send to the contact officer at the relevant agency. The agency will verify your identity and process your claim.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h2>Documents to Prepare</h2>
+    <p style="margin-bottom:14px">The exact documents required vary by agency. The following is a general guide — always confirm with the agency when you contact them.</p>
+
+    <h3>For all claims (bring these regardless)</h3>
+    <ul>
+      <li>Your NRIC (Singapore Citizens / PRs) or Passport (foreigners)</li>
+      <li>Proof of the address listed in the record (e.g. old utility bill, bank statement, SingPass records)</li>
+    </ul>
+
+    <h3>If you are claiming for yourself</h3>
+    <ul>
+      <li>NRIC / Passport matching the name in the record</li>
+      <li>Any documents related to the original transaction (e.g. old tax notice, levy receipt, court document)</li>
+    </ul>
+
+    <h3>If you are claiming on behalf of a deceased person</h3>
+    <ul>
+      <li>Death Certificate of the deceased</li>
+      <li>Grant of Probate or Letters of Administration (if the estate has been administered)</li>
+      <li>Your own NRIC as the executor or administrator</li>
+      <li>If no Grant of Probate: contact the Public Trustee's Office — they can assist with small estates</li>
+    </ul>
+
+    <h3>If you are claiming on behalf of a company</h3>
+    <ul>
+      <li>ACRA Business Profile of the company</li>
+      <li>Authorisation letter from the company (signed by a director)</li>
+      <li>Your own NRIC</li>
+    </ul>
+
+    <h3>Common categories and what to expect</h3>
+    <ul>
+      <li><span class="tag">Tax Refunds</span> Contact IRAS — bring NRIC and your tax reference number</li>
+      <li><span class="tag">Levy Bond / Foreign Worker Levy</span> Contact MOM Work Pass Division — bring company UEN and employment records</li>
+      <li><span class="tag">Bailiff's Account / Court Deposits</span> Contact the Supreme Court or State Courts — may require a lawyer</li>
+      <li><span class="tag">Tender Deposits</span> Contact the relevant agency — bring original tender documents</li>
+      <li><span class="tag">Unredeemed Pledges</span> Contact Registry of Pawnbrokers under MinLaw</li>
+      <li><span class="tag">Deceased Estate / CPF Monies</span> Contact Public Trustee's Office — bring death certificate and proof of relationship</li>
+    </ul>
+  </div>
+
+  <div class="info-card">
+    <h2>Frequently Asked Questions</h2>
+    <h3>Does appearing in the register mean I will definitely get the money?</h3>
+    <p>No. The register only shows that money is being held in your name. You must prove you are the rightful owner by presenting the correct documents to the agency.</p>
+    <h3>Is there a time limit to claim?</h3>
+    <p>There is no fixed deadline stated on the register, but it is advisable to claim as soon as possible. For Supreme Court funds, unclaimed amounts may be transferred to the government after 6 years.</p>
+    <h3>Do I need a lawyer?</h3>
+    <p>For most straightforward claims (tax refunds, levy deposits), you do not need a lawyer. For court-related deposits or complex estate matters, legal advice is recommended.</p>
+    <h3>Is this site affiliated with the Singapore government?</h3>
+    <p>No. This is an independent search tool. All data is sourced from <a href="https://www.unclaimedmonies.gov.sg" target="_blank">www.unclaimedmonies.gov.sg</a>, the official government registry. Always verify information directly with the relevant agency.</p>
+  </div>
+</div>
+
+<!-- CLAIM MODAL -->
+<div class="modal-overlay" id="claimModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Make a Claim</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <h4>📋 Your claim details</h4>
+      <div class="email-preview" id="emailPreview"></div>
+
+      <h4>📎 Attach these documents to your email</h4>
+      <ul id="docList"></ul>
+
+      <h4>📧 How to send</h4>
+      <ol style="padding-left:18px; margin-bottom:0">
+        <li>Click <strong>"Copy Email Content"</strong> below</li>
+        <li>Open your email app and create a new email</li>
+        <li>Paste the content into the body</li>
+        <li>Set the subject to: <strong>Please process my claim</strong></li>
+        <li>Find the contact officer's email from the agency's website (see How to Use tab for agency contacts)</li>
+        <li>Attach your supporting documents and send</li>
+      </ol>
+
+      <div class="modal-actions">
+        <button class="btn-copy" onclick="copyEmail()">Copy Email Content</button>
+        <a class="btn-mailto" id="mailtoLink" href="#">Open in Email App</a>
+        <span class="copied-msg" id="copiedMsg">✅ Copied!</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -151,8 +251,13 @@
   const PAGE_SIZE = 20;
   let currentPage = 0;
   let totalCount = 0;
-  let lastName = "";
-  let lastAddress = "";
+
+  function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
 
   async function runSearch(page = 0) {
     const name = document.getElementById("searchName").value.trim();
@@ -165,10 +270,7 @@
       return;
     }
 
-    lastName = name;
-    lastAddress = address;
     currentPage = page;
-
     document.getElementById("status").textContent = "Searching...";
     document.getElementById("tableContainer").innerHTML = "";
     document.getElementById("pagination").innerHTML = "";
@@ -177,10 +279,8 @@
     const to = from + PAGE_SIZE - 1;
 
     let url = `${SUPABASE_URL}/rest/v1/unclaimed_monies?select=monies_id,name,agency,address,category,year_collected`;
-
     if (name) url += `&name=ilike.*${encodeURIComponent(name)}*`;
     if (address) url += `&address=ilike.*${encodeURIComponent(address)}*`;
-
     url += `&order=name.asc&offset=${from}&limit=${PAGE_SIZE}`;
 
     try {
@@ -203,11 +303,11 @@
       const data = await response.json();
 
       if (!data.length) {
-        document.getElementById("status").textContent = "No results found.";
+        document.getElementById("status").textContent = "No results found. Try a shorter name or check the spelling.";
         return;
       }
 
-      totalPages = Math.ceil(totalCount / PAGE_SIZE);
+      const totalPages = Math.ceil(totalCount / PAGE_SIZE);
       document.getElementById("status").textContent =
         `Showing ${from + 1}–${Math.min(from + data.length, totalCount)} of ${totalCount.toLocaleString()} results`;
 
@@ -225,25 +325,26 @@
     table.innerHTML = `
       <thead>
         <tr>
-          <th>Monies ID</th>
           <th>Name</th>
           <th>Agency</th>
           <th>Address</th>
           <th>Category</th>
           <th>Year</th>
+          <th>Action</th>
         </tr>
       </thead>
     `;
     const tbody = document.createElement("tbody");
     data.forEach(row => {
+      const year = row.year_collected ? String(row.year_collected).replace('.0','') : '—';
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${row.monies_id ?? ""}</td>
-        <td>${row.name ?? ""}</td>
-        <td>${row.agency ?? ""}</td>
-        <td>${row.address ?? ""}</td>
-        <td>${row.category ?? ""}</td>
-        <td>${row.year_collected ?? ""}</td>
+        <td>${row.name ?? '—'}</td>
+        <td>${row.agency ?? '—'}</td>
+        <td>${row.address ?? '—'}</td>
+        <td>${row.category ?? '—'}</td>
+        <td>${year}</td>
+        <td><button class="claim-btn" onclick='openClaim(${JSON.stringify(row)})'>Make a Claim</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -272,12 +373,85 @@
     container.appendChild(next);
   }
 
-  document.getElementById("searchName").addEventListener("keydown", e => {
-    if (e.key === "Enter") runSearch();
+  function openClaim(row) {
+    const year = row.year_collected ? String(row.year_collected).replace('.0','') : 'Not specified';
+    const emailBody = `Dear Sir/Madam,
+
+I would like to make a claim for the following unclaimed monies record:
+
+Name: ${row.name ?? ''}
+Agency: ${row.agency ?? ''}
+Address on Record: ${row.address ?? ''}
+Category: ${row.category ?? ''}
+Year Collected: ${year}
+Reference ID: ${row.monies_id ?? ''}
+
+I have attached the relevant supporting documents to this email.
+
+Please advise on any additional steps required to process my claim.
+
+Thank you.
+
+[Your full name]
+[Your NRIC / Passport number]
+[Your contact number]`;
+
+    document.getElementById("emailPreview").textContent = emailBody;
+
+    // Suggest documents based on category
+    const cat = (row.category ?? '').toLowerCase();
+    let docs = ['Your NRIC or Passport (proof of identity)', 'Proof of address matching the record'];
+
+    if (cat.includes('tax')) {
+      docs.push('Your tax reference number or old tax assessment notice');
+    } else if (cat.includes('levy') || cat.includes('foreign worker')) {
+      docs.push('Company UEN and employment records for the worker');
+      docs.push('Authorisation letter from company director (if claiming on behalf of a company)');
+    } else if (cat.includes('bailiff') || cat.includes('court') || cat.includes('deposit')) {
+      docs.push('Relevant court documents or case number');
+      docs.push('Consider seeking legal advice before proceeding');
+    } else if (cat.includes('estate') || cat.includes('deceased') || cat.includes('cpf')) {
+      docs.push('Death Certificate of the deceased');
+      docs.push('Grant of Probate or Letters of Administration');
+      docs.push('Proof of your relationship to the deceased');
+    } else if (cat.includes('tender')) {
+      docs.push('Original tender documents or receipt');
+    } else if (cat.includes('pawn') || cat.includes('pledge')) {
+      docs.push('Original pawn ticket or receipt');
+    } else {
+      docs.push('Any documents related to the original transaction with the agency');
+    }
+
+    const docList = document.getElementById("docList");
+    docList.innerHTML = docs.map(d => `<li>${d}</li>`).join('');
+
+    // mailto link
+    const subject = "Please process my claim";
+    const mailtoHref = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    document.getElementById("mailtoLink").href = mailtoHref;
+
+    document.getElementById("claimModal").classList.add("open");
+  }
+
+  function closeModal() {
+    document.getElementById("claimModal").classList.remove("open");
+    document.getElementById("copiedMsg").style.display = "none";
+  }
+
+  function copyEmail() {
+    const text = document.getElementById("emailPreview").textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      document.getElementById("copiedMsg").style.display = "inline";
+      setTimeout(() => document.getElementById("copiedMsg").style.display = "none", 2500);
+    });
+  }
+
+  document.getElementById("claimModal").addEventListener("click", function(e) {
+    if (e.target === this) closeModal();
   });
-  document.getElementById("searchAddress").addEventListener("keydown", e => {
-    if (e.key === "Enter") runSearch();
-  });
+
+  document.getElementById("searchName").addEventListener("keydown", e => { if (e.key === "Enter") runSearch(); });
+  document.getElementById("searchAddress").addEventListener("keydown", e => { if (e.key === "Enter") runSearch(); });
 </script>
 
 </body>
