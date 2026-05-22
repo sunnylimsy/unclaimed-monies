@@ -228,6 +228,9 @@
       <h4>📎 Attach these documents to your email</h4>
       <ul id="docList"></ul>
 
+      <div style="background:#fff8e1;border-left:4px solid #f9a825;padding:12px 14px;border-radius:0 4px 4px 0;font-size:0.82rem;color:#555;margin-bottom:12px;line-height:1.6">
+        ⚠️ <strong>Disclaimer:</strong> Please note that the submission of this request does not constitute a valid or successful claim. Do not submit personal information or documents that may contain confidential or sensitive data. By providing your personal information, you have agreed for the respective agency concerned to contact you for further verification.
+      </div>
       <h4>📧 How to send</h4>
       <ol style="padding-left:18px; margin-bottom:0">
         <li>Click <strong>"Copy Email Content"</strong> below</li>
@@ -381,27 +384,21 @@
 
 async function openClaim(row) {
     const year = row.year_collected ? String(row.year_collected).replace('.0','') : 'Not specified';
-    const emailBody = `Dear Sir/Madam,
+    const emailBody = `Dear Officer-in-charge,
 
-I would like to make a claim for the following unclaimed monies record:
+I would like to submit a request to claim the following monies:
 
 Name: ${row.name ?? ''}
 Agency: ${row.agency ?? ''}
-Address on Record: ${row.address ?? ''}
+Last Known Street Address: ${row.address ?? ''}
 Category: ${row.category ?? ''}
 Year Collected: ${year}
 Remarks: ${row.remarks ?? '-'}
-Reference ID: ${row.monies_id ?? ''}
 
-I have attached the relevant supporting documents to this email.
+You may contact me at this email or number: [Insert phone number here].
 
-Please advise on any additional steps required to process my claim.
-
-Thank you.
-
-[Your full name]
-[Your NRIC / Passport number]
-[Your contact number]`;
+I look forward to your early reply.
+Thank you.`;
 
     document.getElementById("emailPreview").textContent = emailBody;
 
