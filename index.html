@@ -83,6 +83,8 @@
     .btn-copy:hover { background: #2d2d5e; }
     .btn-mailto { padding: 10px 20px; background: #2e7d32; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; text-decoration: none; display: inline-block; }
     .btn-mailto:hover { background: #1b5e20; }
+    .btn-gmail { padding: 10px 20px; background: #c5221f; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; text-decoration: none; display: inline-block; }
+    .btn-gmail:hover { background: #a50e0e; }
     .copied-msg { color: #2e7d32; font-size: 0.85rem; align-self: center; display: none; }
   </style>
 </head>
@@ -221,7 +223,8 @@
     <div class="modal-body">
       <h4>📋 Your claim details</h4>
       <div class="email-preview" id="emailPreview"></div>
-
+      <h4>📬 Contact officer(s)</h4>
+      <ul id="officerList" style="padding-left:18px; margin-bottom:12px"></ul>
       <h4>📎 Attach these documents to your email</h4>
       <ul id="docList"></ul>
 
@@ -238,6 +241,7 @@
       <div class="modal-actions">
         <button class="btn-copy" onclick="copyEmail()">Copy Email Content</button>
         <a class="btn-mailto" id="mailtoLink" href="#">Open in Email App</a>
+        <a class="btn-gmail" id="gmailLink" href="#" target="_blank">Open in Gmail</a>
         <span class="copied-msg" id="copiedMsg">✅ Copied!</span>
       </div>
     </div>
@@ -373,7 +377,7 @@
     container.appendChild(next);
   }
 
-  function openClaim(row) {
+async function openClaim(row) {
     const year = row.year_collected ? String(row.year_collected).replace('.0','') : 'Not specified';
     const emailBody = `Dear Sir/Madam,
 
@@ -398,42 +402,73 @@ Thank you.
 
     document.getElementById("emailPreview").textContent = emailBody;
 
-    // Suggest documents based on category
-    const cat = (row.category ?? '').toLowerCase();
-    let docs = ['Your NRIC or Passport (proof of identity)', 'Proof of address matching the record'];
+    // Look up contact officers for this agency + category
+    let officerEmails = "";
+    let officerHTML = "<li>Could not find contact officer — please check the agency website directly.</li>";
 
-    if (cat.includes('tax')) {
-      docs.push('Your tax reference number or old tax assessment notice');
-    } else if (cat.includes('levy') || cat.includes('foreign worker')) {
-      docs.push('Company UEN and employment records for the worker');
-      docs.push('Authorisation letter from company director (if claiming on behalf of a company)');
-    } else if (cat.includes('bailiff') || cat.includes('court') || cat.includes('deposit')) {
-      docs.push('Relevant court documents or case number');
-      docs.push('Consider seeking legal advice before proceeding');
-    } else if (cat.includes('estate') || cat.includes('deceased') || cat.includes('cpf')) {
-      docs.push('Death Certificate of the deceased');
-      docs.push('Grant of Probate or Letters of Administration');
-      docs.push('Proof of your relationship to the deceased');
-    } else if (cat.includes('tender')) {
-      docs.push('Original tender documents or receipt');
-    } else if (cat.includes('pawn') || cat.includes('pledge')) {
-      docs.push('Original pawn ticket or receipt');
-    } else {
-      docs.push('Any documents related to the original transaction with the agency');
+    try {
+        const encAgency = encodeURIComponent(row.agency);
+        const encCategory = encodeURIComponent(row.category);
+        const url = `${SUPABASE_URL}/rest/v1/contact_officers?agency=eq.${encAgency}&category=eq.${encCategory}&select=officer_name,email,designation,phone`;
+        const res = await fetch(url, {
+            headers: {
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+            }
+        });
+        const officers = await res.json();
+
+        if (officers.length > 0) {
+            officerEmails = officers.map(o => o.email).filter(Boolean).join(",");
+            officerHTML = officers.map(o => `
+                <li style="margin-bottom:8px">
+                    <strong>${o.officer_name}</strong>${o.designation ? ' — ' + o.designation : ''}<br>
+                    ${o.phone ? '📞 ' + o.phone + '<br>' : ''}
+                    ${o.email ? '✉️ <a href="mailto:' + o.email + '">' + o.email + '</a>' : ''}
+                </li>`).join('');
+        }
+    } catch(e) {
+        console.error("Officer lookup failed:", e);
     }
 
-    const docList = document.getElementById("docList");
-    docList.innerHTML = docs.map(d => `<li>${d}</li>`).join('');
+    // Show officers in modal
+    document.getElementById("officerList").innerHTML = officerHTML;
 
-    // mailto link
+    // Documents checklist
+    const cat = (row.category ?? '').toLowerCase();
+    let docs = ['Your NRIC or Passport (proof of identity)', 'Proof of address matching the record'];
+    if (cat.includes('tax')) {
+        docs.push('Your tax reference number or old tax assessment notice');
+    } else if (cat.includes('levy') || cat.includes('foreign worker')) {
+        docs.push('Company UEN and employment records for the worker');
+        docs.push('Authorisation letter from company director (if claiming on behalf of a company)');
+    } else if (cat.includes('bailiff') || cat.includes('court') || cat.includes('deposit')) {
+        docs.push('Relevant court documents or case number');
+        docs.push('Consider seeking legal advice before proceeding');
+    } else if (cat.includes('estate') || cat.includes('deceased') || cat.includes('cpf')) {
+        docs.push('Death Certificate of the deceased');
+        docs.push('Grant of Probate or Letters of Administration');
+        docs.push('Proof of your relationship to the deceased');
+    } else if (cat.includes('tender')) {
+        docs.push('Original tender documents or receipt');
+    } else if (cat.includes('pawn') || cat.includes('pledge')) {
+        docs.push('Original pawn ticket or receipt');
+    } else {
+        docs.push('Any documents related to the original transaction with the agency');
+    }
+    document.getElementById("docList").innerHTML = docs.map(d => `<li>${d}</li>`).join('');
+
+    // Build mailto with all officer emails pre-filled
     const subject = "Please process my claim";
-    const mailtoHref = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    const mailtoHref = `mailto:${officerEmails}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
     document.getElementById("mailtoLink").href = mailtoHref;
+    const gmailHref = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(officerEmails)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    document.getElementById("gmailLink").href = gmailHref;
 
     document.getElementById("claimModal").classList.add("open");
-  }
+}
 
-  function closeModal() {
+function closeModal() {
     document.getElementById("claimModal").classList.remove("open");
     document.getElementById("copiedMsg").style.display = "none";
   }
