@@ -225,8 +225,8 @@
       <div class="email-preview" id="emailPreview"></div>
       <h4>📬 Contact officer(s)</h4>
       <ul id="officerList" style="padding-left:18px; margin-bottom:12px"></ul>
-      <h4>📎 Attach these documents to your email</h4>
-      <ul id="docList"></ul>
+      <h4>📎 Have these documents ready</h4>
+      <p style="font-size:0.82rem;color:#666;margin-bottom:8px">Do not attach identity documents (NRIC, passport) to your email. The agency will request them directly when verifying your claim.</p>
 
       <div style="background:#fff8e1;border-left:4px solid #f9a825;padding:12px 14px;border-radius:0 4px 4px 0;font-size:0.82rem;color:#555;margin-bottom:12px;line-height:1.6">
         ⚠️ <strong>Disclaimer:</strong> Please note that the submission of this request does not constitute a valid or successful claim. Do not submit personal information or documents that may contain confidential or sensitive data. By providing your personal information, you have agreed for the respective agency concerned to contact you for further verification.
@@ -436,7 +436,10 @@ Thank you.`;
 
     // Documents checklist
     const cat = (row.category ?? '').toLowerCase();
-    let docs = ['Your NRIC or Passport (proof of identity)', 'Proof of address matching the record'];
+    let docs = [
+        'Proof of address matching the record (e.g. old utility bill, bank statement)',
+        'Any documents related to the original transaction with the agency'
+    ];
     if (cat.includes('tax')) {
         docs.push('Your tax reference number or old tax assessment notice');
     } else if (cat.includes('levy') || cat.includes('foreign worker')) {
@@ -453,8 +456,6 @@ Thank you.`;
         docs.push('Original tender documents or receipt');
     } else if (cat.includes('pawn') || cat.includes('pledge')) {
         docs.push('Original pawn ticket or receipt');
-    } else {
-        docs.push('Any documents related to the original transaction with the agency');
     }
     document.getElementById("docList").innerHTML = docs.map(d => `<li>${d}</li>`).join('');
 
