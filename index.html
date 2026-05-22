@@ -282,7 +282,7 @@
     const from = page * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    let url = `${SUPABASE_URL}/rest/v1/unclaimed_monies?select=monies_id,name,agency,address,category,year_collected`;
+    let url = `${SUPABASE_URL}/rest/v1/unclaimed_monies?select=monies_id,name,agency,address,category,year_collected,remarks`;
     if (name) url += `&name=ilike.*${encodeURIComponent(name)}*`;
     if (address) url += `&address=ilike.*${encodeURIComponent(address)}*`;
     url += `&order=name.asc&offset=${from}&limit=${PAGE_SIZE}`;
@@ -334,6 +334,7 @@
           <th>Address</th>
           <th>Category</th>
           <th>Year</th>
+          <th>Remarks</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -348,6 +349,7 @@
         <td>${row.address ?? '—'}</td>
         <td>${row.category ?? '—'}</td>
         <td>${year}</td>
+        <td>${row.remarks ?? '—'}</td>
         <td><button class="claim-btn" onclick='openClaim(${JSON.stringify(row)})'>Make a Claim</button></td>
       `;
       tbody.appendChild(tr);
@@ -388,6 +390,7 @@ Agency: ${row.agency ?? ''}
 Address on Record: ${row.address ?? ''}
 Category: ${row.category ?? ''}
 Year Collected: ${year}
+Remarks: ${row.remarks ?? '-'}
 Reference ID: ${row.monies_id ?? ''}
 
 I have attached the relevant supporting documents to this email.
