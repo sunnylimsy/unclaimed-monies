@@ -258,7 +258,9 @@
   const PAGE_SIZE = 20;
   let currentPage = 0;
   let totalCount = 0;
-
+  const rowDataMap = new Map();
+  let rowIndex = 0;
+  
   function showPage(id, btn) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
@@ -345,6 +347,8 @@
     const tbody = document.createElement("tbody");
     data.forEach(row => {
       const year = row.year_collected ? String(row.year_collected).replace('.0','') : '—';
+      const idx = rowIndex++;
+      rowDataMap.set(idx, row);
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${row.name ?? '—'}</td>
@@ -353,7 +357,7 @@
         <td>${row.category ?? '—'}</td>
         <td>${year}</td>
         <td>${row.remarks ?? '—'}</td>
-        <td><button class="claim-btn" onclick='openClaim(${JSON.stringify(row)})'>Make a Claim</button></td>
+        <td><button class="claim-btn" onclick="openClaim(${idx})">Make a Claim</button></td>
       `;
       tbody.appendChild(tr);
     });
@@ -382,9 +386,10 @@
     container.appendChild(next);
   }
 
-async function openClaim(row) {
-    const year = row.year_collected ? String(row.year_collected).replace('.0','') : 'Not specified';
-    const emailBody = `Dear Officer-in-charge,
+async function openClaim(idx) {
+    const row = rowDataMap.get(idx);
+    if (!row) return;
+    // rest of the function stays exactly the same
 
 I would like to submit a request to claim the following monies:
 
